@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyDiabetiCare - Glucose Monitoring</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <h1>Glucose Monitoring</h1>
+    <p>Track and visualize your glucose levels</p>
+  </header>
+
+  <div class="container">
+    <h2>Log Your Glucose Reading</h2>
+    <div class="form-group">
+      <label for="glucose-level">Glucose Level (mg/dL):</label>
+      <input type="number" id="glucose-level" placeholder="Enter your glucose level">
+    </div>
+    <button class="btn" onclick="addReading()">Add Reading</button>
+
+    <div class="chart-container">
+      <canvas id="glucoseChart"></canvas>
+    </div>
+
+    <h3>Previous Readings</h3>
+    <ul id="history"></ul>
+  </div>
+
+  <footer>
+    <p>MyDiabetiCare © 2024 | All rights reserved</p>
+  </footer>
+
+  <script>
+    const glucoseData = JSON.parse(localStorage.getItem('glucoseData')) || { labels: [], readings: [] };
+
+    // Chart setup
+    const glucoseChart = new Chart(document.getElementById('glucoseChart'), {
+      type: 'line',
+      data: {
+        labels: glucoseData.labels,
+        datasets: [{
+          label: 'Glucose Levels (mg/dL)',
+          data: glucoseData.readings,
+          borderColor: '#0078D7',
+          backgroundColor: 'rgba(0, 120, 215, 0.2)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: 'Time' } },
+          y: { title: { display: true, text: 'Glucose Level (mg/dL)' } }
+        }
+      }
+    });
+
+    // Add new reading
+    function addReading() {
+      const level = parseFloat(document.getElementById('glucose-level').value);
+
+      if (isNaN(level) || level <= 0) {
+        alert('Please enter a valid glucose level');
+        return;
+      }
+
+      const currentTime = new Date().toLocaleTimeString();
+      glucoseData.labels.push(currentTime);
+      glucoseData.readings.push(level);
+
+      // Update local storage and chart
+      localStorage.setItem('glucoseData', JSON.stringify(glucoseData));
+      glucoseChart.update();
+
+      // Add to history
+      const history = document.getElementById('history');
+      const newItem = document.createElement('li');
+      newItem.textContent = `${currentTime}: ${level} mg/dL`;
+      history.appendChild(newItem);
+
+      document.getElementById('glucose-level').value = '';
+    }
+
+    // Load history on page load
+    const historyList = document.getElementById('history');
+    glucoseData.labels.forEach((time, index) => {
+      const item = document.createElement('li');
+      item.textContent = `${time}: ${glucoseData.readings[index]} mg/dL`;
+      historyList.appendChild(item);
+    });
+  </script>
+</body>
+</html>
